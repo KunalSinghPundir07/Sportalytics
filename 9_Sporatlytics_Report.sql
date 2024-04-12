@@ -82,7 +82,33 @@ BEGIN
 END;
 /
 
+--report to get medical staff workload
 
+SET SERVEROUTPUT ON;
+DECLARE
+  -- Declaring a cursor variable to hold the results
+  workload_cursor SYS_REFCURSOR;
+  -- Variables to hold the fetched data
+  support_date DATE;
+  support_type VARCHAR2(100);
+  duration NUMBER;
+BEGIN
+  -- Execute the function with a specific staff_id
+  workload_cursor := Get_Medical_Staff_Workload(staff_id => 1);  -- Change '1' to the desired staff ID
+
+  -- Loop through the cursor to fetch each row
+  LOOP
+    FETCH workload_cursor INTO support_date, support_type, duration;
+    EXIT WHEN workload_cursor%NOTFOUND;
+    
+    -- Print each row's data
+    DBMS_OUTPUT.PUT_LINE('Date: ' || TO_CHAR(support_date, 'DD-MON-YYYY') || ', Support Type: ' || support_type || ', Duration: ' || duration || ' minutes');
+  END LOOP;
+
+  -- Close the cursor
+  CLOSE workload_cursor;
+END;
+/
 
 
 
