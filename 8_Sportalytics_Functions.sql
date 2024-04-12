@@ -5,7 +5,7 @@ RETURN NUMBER IS -- Changed BIT to NUMBER as Oracle doesn't have a BIT data type
 BEGIN
     SELECT COUNT(*)
     INTO IsValid
-    FROM PLAYERS
+    FROM ADMIN.PLAYERS
     WHERE PLAYER_ID = PlayerID AND players_bonus_eligibility = 'Yes' AND NO_OF_AWARDS >= 2;
 
     RETURN IsValid; -- Returning the count of rows satisfying the condition
@@ -23,7 +23,7 @@ AS
 BEGIN
     OPEN experienced_coaches FOR
         SELECT COACH_ID, COACH_NAME, COACH_YEARSOFEXPERIENCE
-        FROM Coaches
+        FROM ADMIN.Coaches
         WHERE COACH_YEARSOFEXPERIENCE > YearsOfExperienceThreshold;
 
     RETURN experienced_coaches;
@@ -39,14 +39,14 @@ BEGIN
     OPEN combined_info_cursor FOR
     SELECT 'Top Player by Awards' AS category, player_id, player_firstname, player_lastname, 
            nationality, position, team_id, no_of_awards AS metric
-    FROM players
-    WHERE no_of_awards = (SELECT MAX(no_of_awards) FROM players)
+    FROM ADMIN.players
+    WHERE no_of_awards = (SELECT MAX(no_of_awards) FROM ADMIN.players)
     UNION ALL
     SELECT 'Top Player by Earnings' AS category, player_id, player_firstname, player_lastname, 
            nationality, position, team_id, (players_salary + players_salarybonus) AS metric
-    FROM players
+    FROM ADMIN.players
     WHERE (players_salary + players_salarybonus) = (
-        SELECT MAX(players_salary + players_salarybonus) FROM players
+        SELECT MAX(players_salary + players_salarybonus) FROM ADMIN.players
     );
     
     RETURN combined_info_cursor;
@@ -68,12 +68,27 @@ IS
   TotalSalary DECIMAL(10,2);
 BEGIN
     SELECT SUM(PLAYERS_SALARY + PLAYERS_SALARYBONUS) INTO TotalSalary
-    FROM Players
+    FROM ADMIN.Players
     WHERE TEAM_ID = TeamID;
 
     RETURN TotalSalary;
 END;
 /
 
+-- function to get medical staff workload 
 
+SET SERVEROUTPUT ON;
+CREATE OR REPLACE FUNCTION Get_Medical_Staff_Workload(staff_id IN INTEGER)
+RETURN SYS_REFCURSOR IS
+  workload_cursor SYS_REFCURSOR;
+BEGIN
+  OPEN workload_cursor FOR
+    SELECT pms.supportdate, pms.supporttype, pms.duration
+    FROM ADMIN.player_medical_support pms
+    WHERE pms.staff_id = staff_id
+    ORDER BY pms.supportdate DESC;
+
+  RETURN workload_cursor;
+END;
+/
 
