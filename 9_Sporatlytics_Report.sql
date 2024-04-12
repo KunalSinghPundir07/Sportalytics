@@ -21,6 +21,7 @@ BEGIN
 END;
 /
 
+
 --Report to print the list of experienced coaches
 SET SERVEROUTPUT ON;
 
@@ -59,6 +60,25 @@ BEGIN
         v_total_salary := CalculateTotalSalaryForTeam(v_team_id);
         DBMS_OUTPUT.PUT_LINE('Team ID: ' || v_team_id || ', Total Salary: ' || v_total_salary);
     END LOOP;
+END;
+/
+
+
+
+-- report to create Top Player by Awards & Top Player by Earnings
+
+DECLARE
+    combined_info_cursor SYS_REFCURSOR;
+    v_report_title VARCHAR2(100);
+BEGIN
+    -- Report title for combined information
+    SELECT 'Report showing the top player based on the most awards won and by highest total earnings' 
+    INTO v_report_title FROM dual;
+    DBMS_OUTPUT.PUT_LINE('Report Title: ' || v_report_title);
+    
+    -- Assuming get_top_players_info is a function that returns a cursor with combined info
+    combined_info_cursor := get_top_players_info;
+    DBMS_SQL.RETURN_RESULT(combined_info_cursor);
 END;
 /
 

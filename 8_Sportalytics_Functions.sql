@@ -12,6 +12,7 @@ BEGIN
 END;
 /
 
+
 --function to give the list of experienced coaches:
 CREATE OR REPLACE FUNCTION GetExperiencedCoaches(
     YearsOfExperienceThreshold INT
@@ -28,6 +29,35 @@ BEGIN
     RETURN experienced_coaches;
 END;
 /
+
+-- function to create Top Player by Awards & Top Player by Earnings
+
+SET SERVEROUTPUT ON;
+CREATE OR REPLACE FUNCTION get_top_players_info RETURN SYS_REFCURSOR IS
+    combined_info_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN combined_info_cursor FOR
+    SELECT 'Top Player by Awards' AS category, player_id, player_firstname, player_lastname, 
+           nationality, position, team_id, no_of_awards AS metric
+    FROM players
+    WHERE no_of_awards = (SELECT MAX(no_of_awards) FROM players)
+    UNION ALL
+    SELECT 'Top Player by Earnings' AS category, player_id, player_firstname, player_lastname, 
+           nationality, position, team_id, (players_salary + players_salarybonus) AS metric
+    FROM players
+    WHERE (players_salary + players_salarybonus) = (
+        SELECT MAX(players_salary + players_salarybonus) FROM players
+    );
+    
+    RETURN combined_info_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Error retrieving combined top players info: ' || SQLERRM);
+END get_top_players_info;
+/
+
+
+
 
 --function to calculate the total salary for a given team based on the sum of the player's salaries and salary bonuses
 CREATE OR REPLACE FUNCTION CalculateTotalSalaryForTeam(
